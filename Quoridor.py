@@ -24,7 +24,7 @@ class QuoridorGame:
 
     When a player tries to place a fence on the board, the position of the fence is defined
     by a letter and coordinates; “v” for vertical fences, and “h” for horizontal fences,
-    and a tuple of the coordinates. So, for ekample, “h”,(6,5) would be a horizontal fence
+    and a tuple of the coordinates. So, for example, “h”,(6,5) would be a horizontal fence
     starting at the (6,5) coordinate, and drawn one space to the right, whereas  “v”,(6,5)
     would be a vertical fence starting at the (6,5) coordinate, and drawn one space down.
     Fences only block one square, and cannot be moved once placed, nor can they be re-used.
@@ -34,7 +34,7 @@ class QuoridorGame:
     (This is the fair play rule)
 
     A valid move for a player to make would be moving one space horizontally or vertically,
-    unless blocked by a fence, with no diagonal movement allowed EkCEPT for a special condition.
+    unless blocked by a fence, with no diagonal movement allowed EXCEPT for a special condition.
     If facing the other player's piece directly, you are allowed to jump over the other piece,
     assuming no fence is behind the other player's piece that would stop that movement.
     It is in this case ONLY, when one could otherwise jump over an opponent's piece, but is blocked
@@ -317,6 +317,7 @@ def main():
     A main function to run the program as a script or a module.
     """
     q = QuoridorGame()
+    print(q.get_board())
     q.print_board()
     pass
 
