@@ -7,7 +7,7 @@
 class QuoridorGame:
     """
     Creates a game of Quoridor, to be played by two players.
-    The board is formed by a 9k9 grid, upon which the two players will each have a pawn,
+    The board is formed by a 9x9 grid, upon which the two players will each have a pawn,
     and each player's pawn will move on the cells. Each player will have 10 fences.
     The fences can be placed on the edges of the cells, to obstruct the other player's pawn's movement.
 
@@ -43,7 +43,7 @@ class QuoridorGame:
     In this same scenario, if there is a fence to the *side* of the opponent's piece,
     in the intended move direction, that move is blocked by the fence, and cannot be completed.
 
-    Player 1 will start the game. Each player takes turn playing.
+    Player 1 will start the game. Each player takes turns playing.
     On a player’s turn they will make one move.
     They can either move the pawn (move_pawn) or place a fence (place_fence).
     The first player whose pawn reaches any of the cells of the opposite player's base line wins the game.
@@ -51,7 +51,11 @@ class QuoridorGame:
 
     This class contains methods:
         init
-            - initializes the board with the fences (four edges) and pawns (P1 and P2) placed in the correct positions.
+            - initializes the board with the outer four edges fenced in, and pawns (P1 and P2) placed in the correct positions.
+        board_generator
+            - overwrites the current game board with the current content of the spaces and horiz/vert edges lists.
+        get_board
+            - returns the game board list
         move_pawn
             - takes the following two parameters in order:
                 an integer that represents which player (1 or 2) is making the move,
@@ -77,12 +81,15 @@ class QuoridorGame:
         print_board
             - takes no parameters
             - prints the board in a pretty manner.
+        Get and set methods, named in the usual fashion.
     """
 
     def __init__(self):
         """
-        Initializes the board with the fences (four edges) and pawns (P1 and P2) placed in the correct positions.
-        All data members are private. Get and set methods are named in the usual fashion.
+        Initializes the board with the outer four edges fenced in, and pawns (P1 and P2) placed in the correct positions.
+        All data members are private:
+            board, coords_dict, spaces_dict, horiz_edges_dict, vert_edges_dict,
+            game_won, winner, player_1_turn, player_2_turn
         """
 
         # all of these empty lists/dictionaries will get filled within the init function body
@@ -95,7 +102,7 @@ class QuoridorGame:
         self._spaces_dict = dict()  # creates an empty dictionary to hold the spaces ("  " unless filled with a pawn)
                                     # keys of the spaces_dict are a tuple of the position
 
-        self._horiz_edges_dict = dict() # creates an empty dictionary to hold the  horiz edges
+        self._horiz_edges_dict = dict() # creates an empty dictionary to hold the horiz edges
                                         # keys of the horiz_edges_dict are a tuple of the position
                                         # ("  " until filled with a fence, which looks like "--")
 
@@ -113,7 +120,7 @@ class QuoridorGame:
 
         for i in range(0, 10):
             for j in range(0, 10):
-                self._coords_dict[(j, i)] = ". "    # fill the coords_dict
+                self._coords_dict[(j, i)] = ". "  # fills the coords_dict
 
         for i in range(0, 9):
             for j in range(0, 9):
@@ -130,7 +137,6 @@ class QuoridorGame:
                     self._horiz_edges_dict[(j, i)] = "  "   # fill the horiz_edges_dict
                                                             # (outlines the outer edges with fences)
 
-
         for i in range(0, 9):
             for j in range(0, 10):
                 if j == 0 or j == 9:
@@ -139,43 +145,89 @@ class QuoridorGame:
                     self._vert_edges_dict[(j, i)] = "  "    # fill the vert_edges_dict
                                                             #(outlines the outer edges with fences)
 
-        for k in range(0, 10):
+        board = self.board_generator()    # calls the board_generator function to generate a new game board.
+                            # fills up the game board (list of lists) with the edges lined and 2 pawns in starting position,
+                            # since that is the current content of the spaces and horiz/vert edges lists.
+        self.set_board(board)       # overwrites the current board with the new board info
+
+        # game is ready to start!
+
+
+    def board_generator(self):
+        """
+        Overwrites the current game board with the current content of the spaces and horiz/vert edges lists.
+        Returns a new board configuration.
+        """
+        coords_dict = self.get_coords_dict()    # get the current coords_dict
+        horiz_edges_dict = self.get_horiz_edges_dict()    # get the current horiz_edges_dict
+        vert_edges_dict = self.get_vert_edges_dict()    # get the current vert_edges_dict
+        spaces_dict = self.get_spaces_dict()    # get the current spaces_dict
+        board = []      # creates and empty list to hold the new board configuration
+        for k in range(0, 10):  # and then fills it back up again
             horiz_row = []
             vert_row = []
             for i in range(k, k + 1):
                 for j in range(0, 10):
                     if j != 9:
-                        horiz_row.append(self._coords_dict[(j, i)])
-                        horiz_row.append(self._horiz_edges_dict[(j, i)])
+                        horiz_row.append(coords_dict[(j, i)])
+                        horiz_row.append(horiz_edges_dict[(j, i)])
                     else:
-                        horiz_row.append(self._coords_dict[(j, i)])
-            self._board.append(horiz_row)
+                        horiz_row.append(coords_dict[(j, i)])
+            board.append(horiz_row)
             if k == 9:
                 break
 
             for i in range(k, k + 1):
                 for j in range(0, 10):
                     if j != 9:
-                        vert_row.append(self._vert_edges_dict[(j, i)])
-                        vert_row.append(self._spaces_dict[(j, i)])
+                        vert_row.append(vert_edges_dict[(j, i)])
+                        vert_row.append(spaces_dict[(j, i)])
                     else:
-                        vert_row.append(self._vert_edges_dict[(j, i)])
-            self._board.append(vert_row)                                # fills up the game board with a default
-                                                                        # board with the edges lined and 2 pawns
-                                                                        # in starting position
+                        vert_row.append(vert_edges_dict[(j, i)])
+            board.append(vert_row)
+        return board    # returns a new board configuration (can be passed to board generator method)
 
+    def get_board(self):
+        """
+        Returns the board list.
+        """
+        return self._board
 
+    def set_board(self, board):
+        """
+        Overwrites the current board with a new configuration.
+        """
+        self._board = board
 
+    def get_coords_dict(self):
+        """
+        Returns the coords_dict.
+        """
+        return self._coords_dict
+
+    def get_horiz_edges_dict(self):
+        """
+        Returns the horiz_edges_dict.
+        """
+        return self._horiz_edges_dict
+
+    def get_vert_edges_dict(self):
+        """
+        Returns the vert_edges_dict.
+        """
+        return self._vert_edges_dict
+
+    def get_spaces_dict(self):
+        """
+        Returns the spaces_dict.
+        """
+        return self._spaces_dict
 
     def print_board(self):
         """
         Takes no parameters
         Prints the board in a pretty manner.
         """
-
-
-
-        #print(board)
         for line in self._board:
             print(*line[:])
 
