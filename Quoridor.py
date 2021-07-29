@@ -52,10 +52,17 @@ class QuoridorGame:
     This class contains methods:
         init
             - initializes the board with the outer four edges fenced in, and pawns (P1 and P2) placed in the correct positions.
+            - All data members are private:
+                board, coords_dict, spaces_dict, horiz_edges_dict, vert_edges_dict,
+                game_won, winner, player_1_turn, player_2_turn
+        get and set methods for all data members**, named in the usual fashion (e.g. get_data_member_name, set_data_member_name).
+            (**there is not a set method for coords_dict, as the coordinates for the board remain unchanged.)
         board_generator
-            - overwrites the current game board with the current content of the spaces and horiz/vert edges lists.
-        get_board
-            - returns the game board list
+            - creates a new game board with the current content of the spaces and horiz/vert edges lists.
+                Returns the new board configuration (a list of lists), which can then be passed to the set_board method.
+
+
+
         move_pawn
             - takes the following two parameters in order:
                 an integer that represents which player (1 or 2) is making the move,
@@ -81,7 +88,6 @@ class QuoridorGame:
         print_board
             - takes no parameters
             - prints the board in a pretty manner.
-        Get and set methods, named in the usual fashion.
     """
 
     def __init__(self):
@@ -99,9 +105,6 @@ class QuoridorGame:
         self._coords_dict = dict()  # creates an empty dictionary to hold the coordinates (". ", for visual clarity)
                                     # keys of the coords_dict are a tuple of the position
 
-        self._spaces_dict = dict()  # creates an empty dictionary to hold the spaces ("  " unless filled with a pawn)
-                                    # keys of the spaces_dict are a tuple of the position
-
         self._horiz_edges_dict = dict() # creates an empty dictionary to hold the horiz edges
                                         # keys of the horiz_edges_dict are a tuple of the position
                                         # ("  " until filled with a fence, which looks like "--")
@@ -109,6 +112,9 @@ class QuoridorGame:
         self._vert_edges_dict = dict() # creates an empty dictionary to hold the
                                         # keys of the vert_edges_dict are a tuple of the position
                                         # ("  " until filled with a fence, which looks like "| ")
+
+        self._spaces_dict = dict()  # creates an empty dictionary to hold the spaces ("  " unless filled with a pawn)
+                                    # keys of the spaces_dict are a tuple of the position
 
         self._game_won = False      # the game has not been won yet
 
@@ -122,13 +128,6 @@ class QuoridorGame:
             for j in range(0, 10):
                 self._coords_dict[(j, i)] = ". "  # fills the coords_dict
 
-        for i in range(0, 9):
-            for j in range(0, 9):
-                self._spaces_dict[(j, i)] = "  "    # fill the spaces_dict with un-occupied spaces
-        self._spaces_dict[(4, 0)] = "P1"  # fill in player 1's default position
-        self._spaces_dict[(4, 8)] = "P2"  # fill in player 2's default position
-
-
         for i in range(0, 10):
             for j in range(0, 9):
                 if i == 0 or i ==9 :
@@ -136,7 +135,6 @@ class QuoridorGame:
                 else:
                     self._horiz_edges_dict[(j, i)] = "  "   # fill the horiz_edges_dict
                                                             # (outlines the outer edges with fences)
-
         for i in range(0, 9):
             for j in range(0, 10):
                 if j == 0 or j == 9:
@@ -145,6 +143,12 @@ class QuoridorGame:
                     self._vert_edges_dict[(j, i)] = "  "    # fill the vert_edges_dict
                                                             #(outlines the outer edges with fences)
 
+        for i in range(0, 9):
+            for j in range(0, 9):
+                self._spaces_dict[(j, i)] = "  "    # fill the spaces_dict with un-occupied spaces
+        self._spaces_dict[(4, 0)] = "P1"  # fill in player 1's default position
+        self._spaces_dict[(4, 8)] = "P2"  # fill in player 2's default position
+
         board = self.board_generator()    # calls the board_generator function to generate a new game board.
                             # fills up the game board (list of lists) with the edges lined and 2 pawns in starting position,
                             # since that is the current content of the spaces and horiz/vert edges lists.
@@ -152,11 +156,118 @@ class QuoridorGame:
 
         # game is ready to start!
 
+    def get_board(self):
+        """
+        Returns the board list.
+        """
+        return self._board
+
+    def set_board(self, board):
+        """
+        Takes a parameter of a new board (list of lists) (see board generator method)
+        Overwrites the current board with a new configuration.
+        """
+        self._board = board
+
+    def get_coords_dict(self):
+        """
+        Returns the coords_dict.
+        """
+        return self._coords_dict
+
+    # no set method for coords_dict, as the coordinates remain unchanged through gameplay
+
+    def get_horiz_edges_dict(self):
+        """
+        Returns the horiz_edges_dict.
+        """
+        return self._horiz_edges_dict
+
+    def set_horiz_edges_dict(self, horiz_edges_dict):
+        """
+        Takes a parameter of a new horiz_edges_dict (with updates based on successful placement of a horiz fence)
+        Overwrites the current horiz_edges_dict with the new configuration.
+        """
+        self._horiz_edges_dict = horiz_edges_dict
+
+    def get_vert_edges_dict(self):
+        """
+        Returns the vert_edges_dict.
+        """
+        return self._vert_edges_dict
+
+    def set_vert_edges_dict(self, vert_edges_dict):
+        """
+        Takes a parameter of a new vert_edges_dict (with updates based on successful placement of a vert fence)
+        Overwrites the current vert_edges_dict with the new configuration.
+        """
+        self._vert_edges_dict = vert_edges_dict
+
+    def get_spaces_dict(self):
+        """
+        Returns the spaces_dict.
+        """
+        return self._spaces_dict
+
+    def set_spaces_dict(self, spaces_dict):
+        """
+        Takes a parameter of a new spaces_dict (with updates based on successful movement of a pawn)
+        Overwrites the current spaces_dict with the new configuration.
+        """
+        self._vert_edges_dict = vert_edges_dict
+
+    def get_game_won(self):
+        """
+        Returns the current game won state (True or False)
+        """
+        return self._game_won
+
+    def set_game_won(self, boolean):
+        """
+        Sets the game won state (True or False)
+        """
+        self._game_won = boolean
+
+    def get_winner(self):
+        """
+        Returns the current winner of the game (None, p1, p2)
+        """
+        return self._winner
+
+    def set_winner(self, winner):
+        """
+        Sets the winner of the game (None, p1, p2)
+        """
+        self._winner = winner
+
+    def get_player_1_turn(self):
+        """
+        Returns whether or not it is player 1's turn (True or False)
+        """
+        return self._player_1_turn
+
+    def set_player_1_turn(self, boolean):
+        """
+        Sets player 1 turn to True/False.
+        """
+        self._player_1_turn = boolean
+
+    def get_player_2_turn(self):
+        """
+        Returns whether or not it is player 2's turn (True or False)
+        """
+        return self._player_2_turn
+
+    def set_player_2_turn(self, boolean):
+        """
+        Sets player 2 turn to True/False.
+        """
+        self._player_2_turn = boolean
 
     def board_generator(self):
         """
-        Overwrites the current game board with the current content of the spaces and horiz/vert edges lists.
-        Returns a new board configuration.
+        Creates a new game board with the current content of the spaces and horiz/vert edges lists.
+        Returns the new board configuration (a list of lists), which can then be passed to the set_board method.
         """
         coords_dict = self.get_coords_dict()    # get the current coords_dict
         horiz_edges_dict = self.get_horiz_edges_dict()    # get the current horiz_edges_dict
@@ -185,43 +296,11 @@ class QuoridorGame:
                     else:
                         vert_row.append(vert_edges_dict[(j, i)])
             board.append(vert_row)
-        return board    # returns a new board configuration (can be passed to board generator method)
+        return board    # returns a new board configuration (can be passed to set_board method)
 
-    def get_board(self):
-        """
-        Returns the board list.
-        """
-        return self._board
 
-    def set_board(self, board):
-        """
-        Overwrites the current board with a new configuration.
-        """
-        self._board = board
 
-    def get_coords_dict(self):
-        """
-        Returns the coords_dict.
-        """
-        return self._coords_dict
 
-    def get_horiz_edges_dict(self):
-        """
-        Returns the horiz_edges_dict.
-        """
-        return self._horiz_edges_dict
-
-    def get_vert_edges_dict(self):
-        """
-        Returns the vert_edges_dict.
-        """
-        return self._vert_edges_dict
-
-    def get_spaces_dict(self):
-        """
-        Returns the spaces_dict.
-        """
-        return self._spaces_dict
 
     def print_board(self):
         """
