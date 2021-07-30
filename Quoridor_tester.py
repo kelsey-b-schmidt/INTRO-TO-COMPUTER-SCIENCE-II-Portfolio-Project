@@ -204,39 +204,22 @@ class TestQuoridorGame(unittest.TestCase):
         result = q.get_winner()
         self.assertEqual(result, 1)
 
-    def test_QuoridorGame_get_player_1_turn(self):
+    def test_QuoridorGame_get_player_turn(self):
         """
-        Tests QuoridorGame get_player_1_turn.
+        Tests QuoridorGame get_player_turn.
         """
         q = QuoridorGame()
-        result = q.get_player_1_turn()
-        self.assertTrue(result)
+        result = q.get_player_turn()
+        self.assertEqual(result, 1)
 
-    def test_QuoridorGame_set_player_1_turn(self):
+    def test_QuoridorGame_set_player_turn(self):
         """
-        Tests QuoridorGame set_player_1_turn.
-        """
-        q = QuoridorGame()
-        q.set_player_1_turn(False)
-        result = q.get_player_1_turn()
-        self.assertFalse(result)
-
-    def test_QuoridorGame_get_player_2_turn(self):
-        """
-        Tests QuoridorGame get_player_2_turn.
+        Tests QuoridorGame set_player_turn.
         """
         q = QuoridorGame()
-        result = q.get_player_2_turn()
-        self.assertFalse(result)
-
-    def test_QuoridorGame_set_player_2_turn(self):
-        """
-        Tests QuoridorGame set_player_2_turn.
-        """
-        q = QuoridorGame()
-        q.set_player_2_turn(True)
-        result = q.get_player_1_turn()
-        self.assertTrue(result)
+        q.set_player_turn(2)
+        result = q.get_player_turn()
+        self.assertEqual(result, 2)
 
     def test_QuoridorGame_amend_board(self):
         """
@@ -414,11 +397,192 @@ class TestQuoridorGame(unittest.TestCase):
 
     def test_QuoridorGame_pawn_position(self):
         """
-        Tests QuoridorGame is_winner.
+        Tests QuoridorGame pawn_position.
         """
         q = QuoridorGame()
         result = q.pawn_position(1)
         self.assertEqual(result, (4,0))
+
+    def test_QuoridorGame_valid_moves_42_no_fences_no_enemy(self):
+        """
+        Tests QuoridorGame valid_moves, P1 pawn on (4, 2), no fences blocking, no enemy adjacent.
+        """
+        q = QuoridorGame()
+        q.amend_spaces_dict((4, 0), "  ")
+        q.amend_spaces_dict((4, 2), "P1")
+        q.amend_board()
+        p1_position = q.pawn_position(1)
+        result = q.valid_moves(p1_position)
+        self.assertEqual(result, [(3, 2), (4, 1), (4, 3), (5, 2)])
+
+    def test_QuoridorGame_valid_moves_42_up_fence_no_enemy(self):
+        """
+        Tests QuoridorGame valid_moves, P1 pawn on (4, 2), up fence blocking, no enemy adjacent.
+        """
+        q = QuoridorGame()
+        q.amend_spaces_dict((4, 0), "  ")
+        q.amend_spaces_dict((4, 2), "P1")
+        q.amend_horiz_edges_dict((4,2), "__")
+        q.amend_board()
+        p1_position = q.pawn_position(1)
+        result = q.valid_moves(p1_position)
+        self.assertEqual(result, [(3, 2), (4, 3), (5, 2)])
+
+    def test_QuoridorGame_valid_moves_42_bottom_fence_no_enemy(self):
+        """
+        Tests QuoridorGame valid_moves, P1 pawn on (4, 2), bottom fence blocking, no enemy adjacent.
+        """
+        q = QuoridorGame()
+        q.amend_spaces_dict((4, 0), "  ")
+        q.amend_spaces_dict((4, 2), "P1")
+        q.amend_horiz_edges_dict((4,3), "__")
+        q.amend_board()
+        p1_position = q.pawn_position(1)
+        result = q.valid_moves(p1_position)
+        self.assertEqual(result, [(3, 2), (4, 1), (5, 2)])
+
+    def test_QuoridorGame_valid_moves_42_left_fence_no_enemy(self):
+        """
+        Tests QuoridorGame valid_moves, P1 pawn on (4, 2), left fence blocking, no enemy adjacent.
+        """
+        q = QuoridorGame()
+        q.amend_spaces_dict((4, 0), "  ")
+        q.amend_spaces_dict((4, 2), "P1")
+        q.amend_vert_edges_dict((4,2), "| ")
+        q.amend_board()
+        p1_position = q.pawn_position(1)
+        result = q.valid_moves(p1_position)
+        self.assertEqual(result, [(4, 1), (4, 3), (5, 2)])
+
+    def test_QuoridorGame_valid_moves_42_right_fence_no_enemy(self):
+        """
+        Tests QuoridorGame valid_moves, P1 pawn on (4, 2), right fence blocking, no enemy adjacent.
+        """
+        q = QuoridorGame()
+        q.amend_spaces_dict((4, 0), "  ")
+        q.amend_spaces_dict((4, 2), "P1")
+        q.amend_vert_edges_dict((5,2), "| ")
+        q.amend_board()
+        p1_position = q.pawn_position(1)
+        result = q.valid_moves(p1_position)
+        self.assertEqual(result, [(3, 2), (4, 1), (4, 3)])
+
+    def test_QuoridorGame_valid_moves_42_no_fences_enemy_up_jump_allowed(self):
+        """
+        Tests QuoridorGame valid_moves, P1 pawn on (4, 2), no fences blocking, enemy up, jump allowed.
+        """
+        q = QuoridorGame()
+        q.amend_spaces_dict((4, 0), "  ")
+        q.amend_spaces_dict((4, 2), "P1")
+        q.amend_spaces_dict((4, 8), "  ")
+        q.amend_spaces_dict((4,1), "P2")
+        q.amend_board()
+        p1_position = q.pawn_position(1)
+        result = q.valid_moves(p1_position)
+        self.assertEqual(result, [(3, 2), (4, 0), (4, 3), (5, 2)])
+
+    def test_QuoridorGame_valid_moves_42_no_fences_enemy_up_jump_blocked(self):
+        """
+        Tests QuoridorGame valid_moves, P1 pawn on (4, 2), no fences blocking, enemy down, jump blocked
+        (both diag allowed).
+        """
+        q = QuoridorGame()
+        q.amend_spaces_dict((4, 0), "  ")
+        q.amend_spaces_dict((4, 2), "P1")
+        q.amend_spaces_dict((4, 8), "  ")
+        q.amend_spaces_dict((4,1), "P2")
+        q.amend_horiz_edges_dict((4,1), "__")
+        q.amend_board()
+        p1_position = q.pawn_position(1)
+        result = q.valid_moves(p1_position)
+        self.assertEqual(result, [(3, 1), (3, 2), (4, 3), (5, 1), (5, 2)])
+
+    def test_QuoridorGame_valid_moves_42_no_fences_enemy_up_jump_blocked_diag_up_left_blocked(self):
+        """
+        Tests QuoridorGame valid_moves, P1 pawn on (4, 2), no fences blocking, enemy down, jump blocked
+        (diag up left blocked).
+        """
+        q = QuoridorGame()
+        q.amend_spaces_dict((4, 0), "  ")
+        q.amend_spaces_dict((4, 2), "P1")
+        q.amend_spaces_dict((4, 8), "  ")
+        q.amend_spaces_dict((4,1), "P2")
+        q.amend_horiz_edges_dict((4,1), "__")
+        q.amend_vert_edges_dict((4, 1), "| ")
+        q.amend_board()
+        p1_position = q.pawn_position(1)
+        result = q.valid_moves(p1_position)
+        self.assertEqual(result, [(3, 2), (4, 3), (5, 1), (5, 2)])
+
+    def test_QuoridorGame_valid_moves_42_no_fences_enemy_up_jump_blocked_diag_up_right_blocked(self):
+        """
+        Tests QuoridorGame valid_moves, P1 pawn on (4, 2), no fences blocking, enemy down, jump blocked
+        (diag up right blocked).
+        """
+        q = QuoridorGame()
+        q.amend_spaces_dict((4, 0), "  ")
+        q.amend_spaces_dict((4, 2), "P1")
+        q.amend_spaces_dict((4, 8), "  ")
+        q.amend_spaces_dict((4,1), "P2")
+        q.amend_horiz_edges_dict((4,1), "__")
+        q.amend_vert_edges_dict((5,1), "| ")
+        q.amend_board()
+        p1_position = q.pawn_position(1)
+        result = q.valid_moves(p1_position)
+        self.assertEqual(result, [(3, 1), (3, 2), (4, 3), (5, 2)])
+
+    def test_QuoridorGame_valid_moves_42_no_fences_enemy_up_jump_blocked_both_diag_blocked(self):
+        """
+        Tests QuoridorGame valid_moves, P1 pawn on (4, 2), no fences blocking, enemy down, jump blocked
+        (both diag blocked).
+        """
+        q = QuoridorGame()
+        q.amend_spaces_dict((4, 0), "  ")
+        q.amend_spaces_dict((4, 2), "P1")
+        q.amend_spaces_dict((4, 8), "  ")
+        q.amend_spaces_dict((4,1), "P2")
+        q.amend_horiz_edges_dict((4,1), "__")
+        q.amend_vert_edges_dict((4, 1), "| ")
+        q.amend_vert_edges_dict((5,1), "| ")
+        q.amend_board()
+        p1_position = q.pawn_position(1)
+        result = q.valid_moves(p1_position)
+        self.assertEqual(result, [(3, 2), (4, 3), (5, 2)])
+
+    def test_QuoridorGame_move_pawn_game_over(self):
+        """
+        Tests QuoridorGame move_pawn, game over.
+        """
+        q = QuoridorGame()
+        q.set_game_won(True)
+        result = q.move_pawn(1, (4, 1))
+        self.assertFalse(result)
+
+    def test_QuoridorGame_move_pawn_not_players_turn(self):
+        """
+        Tests QuoridorGame move_pawn, not player's turn.
+        """
+        q = QuoridorGame()
+        result = q.move_pawn(2, (4, 1))
+        self.assertFalse(result)
+
+    def test_QuoridorGame_move_pawn_move_not_valid(self):
+        """
+        Tests QuoridorGame move_pawn, move not valid.
+        """
+        q = QuoridorGame()
+        result = q.move_pawn(1, (8, 8))
+        self.assertFalse(result)
+
+    def test_QuoridorGame_move_pawn_move_valid(self):
+        """
+        Tests QuoridorGame move_pawn, move valid.
+        """
+        q = QuoridorGame()
+        result = q.move_pawn(1, (4, 1))
+        self.assertTrue(result)
+
+
 
 
 

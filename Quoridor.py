@@ -55,7 +55,7 @@ class QuoridorGame:
                 and pawns (P1 and P2) placed in the correct positions.
             - All data members are private:
                 board, coords_dict, spaces_dict, horiz_edges_dict, vert_edges_dict,
-                game_won, winner, player_1_turn, player_2_turn
+                game_won, winner, player_turn
         get and set methods for all data members**, (e.g. get_data_member_name, set_data_member_name).
             - get and set private data members (overrides current content)
         amend methods for board, spaces_dict, horiz_edges_dict, vert_edges_dict ** (e.g amend_data_member_name)
@@ -67,17 +67,32 @@ class QuoridorGame:
         pawn_position
             - takes a player (1 or 2).
             - returns a tuple of the current position of the player's pawn.
-
-
-
+        valid_moves
+            - takes a tuple of a pawn's current position.
+            - returns a list of valid moves (places the pawn can legally go) in any direction.
+            - uses results from helper methods: valid_moves_up, valid_moves_down, valid_moves_left, valid_moves_right.
+        valid_moves_up
+            - takes a tuple of a pawn's current position.
+            - returns a list of valid moves (places the pawn can legally go) in the upwards direction.
+        valid_moves_down
+            - takes a tuple of a pawn's current position.
+            - returns a list of valid moves (places the pawn can legally go) in the downwards direction.
+        valid_moves_left
+            - takes a tuple of a pawn's current position.
+            - returns a list of valid moves (places the pawn can legally go) in the leftwards direction.
+        valid_moves_right
+            - takes a tuple of a pawn's current position.
+            - returns a list of valid moves (places the pawn can legally go) in the rightwards direction.
         move_pawn
-            - takes the following two parameters in order:
+            - Takes the following two parameters in order:
                 an integer that represents which player (1 or 2) is making the move,
-                and a tuple with the coordinates of where the pawn is going to be moved to.
+                and a tuple with the coordinates of the new position where the pawn is going to be moved to.
                     (ex. move_pawn(2, (4,7))
-            - if the game has been already won, returns False
-            - if the move is forbidden by the fair play rule or blocked by a fence, returns False
-            - if the move was successful or if the move makes the player win, returns True
+            - if the game has been already won, returns False.
+            - if it is not the player's turn, return False.
+            - if the move is not valid returns False.
+            - if the move is is valid, makes the move, updates the game board, updates whose turn it is,
+                triggers a win if necessary, and returns True.
         place_fence
             - takes the following parameters in order:
                 an integer that represents which player (1 or 2) is making the move,
@@ -129,9 +144,7 @@ class QuoridorGame:
 
         self._winner = None         # game starts with no winner (can be None, 1, or 2)
 
-        self._player_1_turn = True  # the game starts on player 1's turn (can be True or False)
-
-        self._player_2_turn = False # the game starts on player 1's turn (can be True or False)
+        self._player_turn = 1  # the game starts on player 1's turn (can be 1 or 2)
 
         for i in range(0, 10):                      # fill the coords_dict
             for j in range(0, 10):                  # since this only happens once and is within the init,
@@ -248,29 +261,17 @@ class QuoridorGame:
         """
         self._winner = player
 
-    def get_player_1_turn(self):
+    def get_player_turn(self):
         """
-        Returns whether or not it is player 1's turn (True or False)
+        Returns whose turn it is currently (1 or 2)
         """
-        return self._player_1_turn
+        return self._player_turn
 
-    def set_player_1_turn(self, boolean):
+    def set_player_turn(self, player):
         """
-        Sets player 1 turn to True/False.
+        Sets player turn to selected player (1 or 2)
         """
-        self._player_1_turn = boolean
-
-    def get_player_2_turn(self):
-        """
-        Returns whether or not it is player 2's turn (True or False)
-        """
-        return self._player_2_turn
-
-    def set_player_2_turn(self, boolean):
-        """
-        Sets player 2 turn to True/False.
-        """
-        self._player_2_turn = boolean
+        self._player_turn = player
 
     # amend methods
 
@@ -354,27 +355,19 @@ class QuoridorGame:
         """
         Takes a tuple of a pawn's current position.
         Returns a list of valid moves (places the pawn can legally go) in any direction.
+        Uses results from helper methods: valid_moves_up, valid_moves_down, valid_moves_left, valid_moves_right.
         """
         valid_moves = []    # create an empty list to hold the valid moves
 
         valid_moves_up = self.valid_moves_up(position)  # run valid_moves_up
-        for move in valid_moves_up:
-            valid_moves.append(move)
-
         valid_moves_down = self.valid_moves_down(position)  # run valid_moves_down
-        for move in valid_moves_down:
-            valid_moves.append(move)
-
         valid_moves_left = self.valid_moves_left(position)  # run valid_moves_left
-        for move in valid_moves_left:
-            valid_moves.append(move)
-
-
-
+        valid_moves_right = self.valid_moves_right(position)  # run valid_moves_right
+        for move in set(valid_moves_up) | set(valid_moves_down) | set(valid_moves_left) | set(valid_moves_right):
+            # for each move that is in any, some, or all of the lists (gets only unique moves
+            valid_moves.append(move)  # add the move
+        valid_moves.sort() # sort the list for easy reading
         return valid_moves
-
-
-
 
     def valid_moves_up(self, position):
         """
@@ -454,6 +447,81 @@ class QuoridorGame:
         # if we make it all the way here and no leftwards move was valid, the list will be empty
         return valid_moves  # returns the list if valid leftwards moves
 
+    def valid_moves_right(self, position):
+        """
+        Takes a tuple of a pawn's current position.
+        Returns a list of valid moves (places the pawn can legally go) in the rightwards direction.
+        """
+        horiz_edges_dict = self.get_horiz_edges_dict()
+        vert_edges_dict = self.get_vert_edges_dict()
+        spaces_dict = self.get_spaces_dict()
+        x = position[0]
+        y = position[1]
+        valid_moves = []
+
+        if vert_edges_dict[x+1, y] == "  ":  # if the right edge is open
+            if spaces_dict[x+1, y] == "  ":     # if the right space is open
+                valid_moves.append((x+1, y))        # right space is valid
+            else:                               # if the right space is not open (has a pawn in it)
+                if vert_edges_dict[x+2, y] == "  ":    # if the edge to the right of that is open
+                    valid_moves.append((x+2, y))          # jumping over the pawn to next right space is valid
+                else:                          # if the pawn has a fence to the right of it we can try to move diagonally
+                    if horiz_edges_dict[x+1, y+1] == "  ":     # if the edge on the bottom of the enemy pawn is open
+                        valid_moves.append((x+1, y+1))        # moving right diagonally downwards is valid
+                    if horiz_edges_dict[x+1, y] == "  ":     # if the edge on top of the enemy pawn is open
+                        valid_moves.append((x+1, y-1))        # moving right diagonally upwards is valid
+        # if we make it all the way here and no rightwards move was valid, the list will be empty
+        return valid_moves  # returns the list if valid rightwards moves
+
+    def move_pawn(self, player, position):
+        """
+        Takes the following two parameters in order:
+            an integer that represents which player (1 or 2) is making the move,
+            and a tuple with the coordinates of the new position where the pawn is going to be moved to.
+                (ex. move_pawn(2, (4,7))
+        If the game has been already won, returns False.
+        If it is not the player's turn, return False.
+        If the move is not valid returns False.
+        If the move is is valid, makes the move, updates the game board,
+            updates whose turn it is, triggers a win if necessary, and returns True.
+        """
+        p1_winning_positions = [(8, 0), (8, 1), (8, 2), (8, 3), (8, 4), (8, 5), (8, 6), (8, 7), (8, 8)]
+        p2_winning_positions = [(0, 0), (0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (0, 6), (0, 7), (0, 8)]
+        current_pawn_position = self.pawn_position(player)  # get the current position of the player's pawn
+        valid_moves = self.valid_moves(current_pawn_position)  # get the valid moves from that space
+
+        if self.get_game_won() == True:     # if the game has been won already
+            return False                    # return False
+
+        elif self.get_player_turn() != player:    # if it's not the selected player's turn
+            return False                    # return False
+
+        elif position not in valid_moves: # if the intended position is not a valid move
+            return False                # return False
+
+        else:
+            self.amend_spaces_dict(current_pawn_position, "  ") # resets the current pawn position to blank in the spaces_dict
+            if player == 1:                             # if the player is 1
+                self.amend_spaces_dict(position, "P1")  # set the P1 pawn to the new position in the spaces_dict
+                self.amend_board()  # amends the board with the spaces_dict positions
+                if position in p1_winning_positions:    # if player 1 reached a winning position
+                    self.set_game_won(True)             # set game_won to True
+                    self.set_winner(1)                  # set the winner to player 1
+                self.set_player_turn(2)                 # change to player 2's turn
+                return True                             # return True
+            if player == 2:                             # if the player is 2
+                self.amend_spaces_dict(position, "P2")  # set the P2 pawn to the new position in the spaces_dict
+                self.amend_board()  # amends the board with the spaces_dict positions
+                if position in p2_winning_positions:    # if player 2 reached a winning position
+                    self.set_game_won(True)             # set game_won to True
+                    self.set_winner(2)                  # set the winner to player 2
+                self.set_player_turn(1)                 # change to player 1's turn
+                return True                             # return True
+
+
+
+
+
 
 
 
@@ -485,35 +553,20 @@ def main():
     A main function to run the program as a script or a module.
     """
     q = QuoridorGame()
-    #q.amend_horiz_edges_dict((4,2), "__")   # blocked on top
-    #q.amend_horiz_edges_dict((4,3), "__")   # blocked on bottom
-    #q.amend_vert_edges_dict((4,2), "| ")   # blocked on left
+    q.print_board()
+    print("Game won:",q.get_game_won())
+    print("Winner:",q.get_winner())
+    print("Whose turn: Player",q.get_player_turn())
 
-    #q.amend_spaces_dict((4,1), "P3")         # jump up
-    #q.amend_spaces_dict((4,3), "P4")         # jump down
-    q.amend_spaces_dict((3,2), "P5")         # jump left
 
-    #q.amend_horiz_edges_dict((4,1), "__")   # jump up blocked
-    #q.amend_horiz_edges_dict((4,4), "__")   # jump down blocked
-    #q.amend_vert_edges_dict((3,2), "| ")   # jump left blocked
-
-    #q.amend_vert_edges_dict((4,1), "| ")   # diag up left blocked
-    #q.amend_vert_edges_dict((5,1), "| ")   # diag up right blocked
-
-    #q.amend_vert_edges_dict((4,3), "| ")   # diag down left blocked
-    #q.amend_vert_edges_dict((5,3), "| ")   # diag down right blocked
-
-    #q.amend_horiz_edges_dict((3,2), "__")   # diag left up blocked
-    #q.amend_horiz_edges_dict((3,3), "__")   # diag left down blocked
-
-    q.amend_spaces_dict((4,0), "  ")
-    q.amend_spaces_dict((4,2), "P1")
-    #q.amend_spaces_dict((4,1), "P3")
-    q.amend_board()
+    #q.move_pawn(2, (4, 7))  # moves the Player2 pawn -- invalid move because only Player1 can start, returns False
+    q.move_pawn(1, (4, 1))  # moves the Player1 pawn -- valid move, returns True
 
     q.print_board()
-    #print(q.valid_moves_left((4, 2)))
-    print(q.valid_moves((4, 2)))
+    print("Game won:", q.get_game_won())
+    print("Winner:", q.get_winner())
+    print("Whose turn: Player", q.get_player_turn())
+
     pass
 
 if __name__ == '__main__':  # if running as a script, runs the main function
