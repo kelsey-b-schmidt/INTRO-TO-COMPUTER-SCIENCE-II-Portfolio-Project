@@ -3,6 +3,7 @@
 # Description:  # Testing file for QuoridorGame.py, containing unit tests.
 
 import unittest
+from Quoridor import FairPlayBroken
 from Quoridor import QuoridorGame
 
 class TestQuoridorGame(unittest.TestCase):
@@ -221,6 +222,40 @@ class TestQuoridorGame(unittest.TestCase):
         result = q.get_player_turn()
         self.assertEqual(result, 2)
 
+    def test_QuoridorGame_get_player_1_fences(self):
+        """
+        Tests QuoridorGame get_player_1_fences.
+        """
+        q = QuoridorGame()
+        result = q.get_player_1_fences()
+        self.assertEqual(result, 10)
+
+    def test_QuoridorGame_set_player_1_fences(self):
+        """
+        Tests QuoridorGame set_player_1_fences.
+        """
+        q = QuoridorGame()
+        q.set_player_1_fences(9)
+        result = q.get_player_1_fences()
+        self.assertEqual(result, 9)
+
+    def test_QuoridorGame_get_player_2_fences(self):
+        """
+        Tests QuoridorGame get_player_2_fences.
+        """
+        q = QuoridorGame()
+        result = q.get_player_2_fences()
+        self.assertEqual(result, 10)
+
+    def test_QuoridorGame_set_player_2_fences(self):
+        """
+        Tests QuoridorGame set_player_2_fences.
+        """
+        q = QuoridorGame()
+        q.set_player_2_fences(9)
+        result = q.get_player_2_fences()
+        self.assertEqual(result, 9)
+
     def test_QuoridorGame_amend_board(self):
         """
         Tests QuoridorGame amend_board.
@@ -386,6 +421,15 @@ class TestQuoridorGame(unittest.TestCase):
             ['| ', '  ', '  ', '  ', '  ', '  ', '  ', '  ', '  ', 'P2', '  ', '  ', '  ', '  ', '  ', '  ', '  ', '  ', '| '],
             ['. ', '__', '. ', '__', '. ', '__', '. ', '__', '. ', '__', '. ', '__', '. ', '__', '. ', '__', '. ', '__', '. ']
         ])
+
+    def test_QuoridorGame_amend_player_fences(self):
+        """
+        Tests QuoridorGame amend_spaces_dict.
+        """
+        q = QuoridorGame()
+        q.amend_player_fences(2)
+        result = q.get_player_2_fences()
+        self.assertEqual(result, 9)
 
     def test_QuoridorGame_is_winner(self):
         """
@@ -581,6 +625,117 @@ class TestQuoridorGame(unittest.TestCase):
         q = QuoridorGame()
         result = q.move_pawn(1, (4, 1))
         self.assertTrue(result)
+
+    def test_QuoridorGame_move_pawn_game_won(self):
+        """
+        Tests QuoridorGame move_pawn, game won.
+        """
+        q = QuoridorGame()
+        q.move_pawn(1, (4, 1))
+        q.move_pawn(2, (3, 8))
+        q.move_pawn(1, (4, 2))
+        q.move_pawn(2, (2, 8))
+        q.move_pawn(1, (4, 3))
+        q.move_pawn(2, (1, 8))
+        q.move_pawn(1, (4, 4))
+        q.move_pawn(2, (0, 8))
+        q.move_pawn(1, (4, 5))
+        q.move_pawn(2, (0, 7))
+        q.move_pawn(1, (4, 6))
+        q.move_pawn(2, (0, 6))
+        q.move_pawn(1, (4, 7))
+        q.move_pawn(2, (0, 5))
+        q.move_pawn(1, (4, 8))
+        result = q.get_game_won()
+        self.assertTrue(result)
+
+    def test_QuoridorGame_move_pawn_game_won_winner(self):
+        """
+        Tests QuoridorGame move_pawn, move won, winner.
+        """
+        q = QuoridorGame()
+        q.move_pawn(1, (4, 1))
+        q.move_pawn(2, (3, 8))
+        q.move_pawn(1, (4, 2))
+        q.move_pawn(2, (2, 8))
+        q.move_pawn(1, (4, 3))
+        q.move_pawn(2, (1, 8))
+        q.move_pawn(1, (4, 4))
+        q.move_pawn(2, (0, 8))
+        q.move_pawn(1, (4, 5))
+        q.move_pawn(2, (0, 7))
+        q.move_pawn(1, (4, 6))
+        q.move_pawn(2, (0, 6))
+        q.move_pawn(1, (4, 7))
+        q.move_pawn(2, (0, 5))
+        q.move_pawn(1, (4, 8))
+        result = q.get_winner()
+        self.assertEqual(result, 1)
+
+    def test_QuoridorGame_fair_play_true(self):
+        """
+        Tests QuoridorGame fair_play_true.
+        """
+        q = QuoridorGame()
+        result = q.fair_play(1)
+        self.assertTrue(result)
+
+    def test_QuoridorGame_fair_play_false_surrounded(self):
+        """
+        Tests QuoridorGame fair_play_true.
+        """
+        q = QuoridorGame()
+        q.move_pawn(1, (4, 1))
+        q.amend_horiz_edges_dict((4, 1), "__")
+        q.amend_vert_edges_dict((4, 1), "| ")
+        q.amend_horiz_edges_dict((4, 2), "__")
+        q.amend_vert_edges_dict((5, 1), "| ")
+        q.amend_board()
+        self.assertRaises(FairPlayBroken, q.fair_play, 1)
+
+    def test_QuoridorGame_fair_play_false_line(self):
+        """
+        Tests QuoridorGame fair_play_true.
+        """
+        q = QuoridorGame()
+        q.amend_horiz_edges_dict((8, 1), "__")
+        q.amend_horiz_edges_dict((7, 1), "__")
+        q.amend_horiz_edges_dict((6, 1), "__")
+        q.amend_horiz_edges_dict((5, 1), "__")
+        q.amend_horiz_edges_dict((4, 1), "__")
+        q.amend_horiz_edges_dict((3, 1), "__")
+        q.amend_horiz_edges_dict((2, 1), "__")
+        q.amend_horiz_edges_dict((1, 1), "__")
+        q.amend_horiz_edges_dict((0, 1), "__")
+        q.amend_board()
+        self.assertRaises(FairPlayBroken, q.fair_play, 1)
+
+    def test_QuoridorGame_place_fence_game_won(self):
+        """
+        Tests QuoridorGame place_fence_game_won.
+        """
+        q = QuoridorGame()
+        q.set_game_won(True)
+        result = q.place_fence(1, 'h',(6,5))
+        self.assertFalse(result)
+
+    def test_QuoridorGame_place_fence_out_of_fences(self):
+        """
+        Tests QuoridorGame place_fence_out_of_fences.
+        """
+        q = QuoridorGame()
+        q.set_player_1_fences(0)
+        result = q.place_fence(1, 'h',(6,5))
+        self.assertFalse(result)
+
+    def test_QuoridorGame_place_fence_not_valid(self):
+        """
+        Tests QuoridorGame place_fence_not_valid.
+        """
+        q = QuoridorGame()
+        result = q.place_fence(1, 'h',(9,5))
+        self.assertFalse(result)
+
 
 
 
